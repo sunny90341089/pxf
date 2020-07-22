@@ -32,6 +32,7 @@ ADL                         ?= false
 GS                          ?= false
 MINIO                       ?= false
 OEL7                        ?= false
+OSS                         ?= false
 
 .PHONY: build certification dev pr
 build: set-build-pipeline
@@ -86,6 +87,7 @@ set-dev-build-pipeline:
 		gs=$(GS) \
 		minio=$(MINIO) \
 		oel7=$(OEL7) \
+		oss=$(OSS) \
 		dev_pipeline=true \
 		user=$(USER) \
 		branch=$(BRANCH) \

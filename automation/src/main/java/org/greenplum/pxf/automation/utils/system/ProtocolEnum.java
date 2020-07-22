@@ -8,6 +8,7 @@ public enum ProtocolEnum {
     S3("s3"),
     ADL("adl"),
     WASBS("wasbs"),
+    OSS("oss"),
     GS("gs");
     private String value;
 

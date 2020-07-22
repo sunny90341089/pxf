@@ -45,6 +45,8 @@ public enum HcfsType {
             return dataSource;
         }
     },
+    // OSS is for Ayilun (Alibaba Cloud)
+    OSS,
     S3,
     S3A,
     S3N,
