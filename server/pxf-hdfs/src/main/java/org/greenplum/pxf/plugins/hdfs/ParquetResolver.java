@@ -21,13 +21,12 @@ package org.greenplum.pxf.plugins.hdfs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.example.data.simple.SimpleGroupFactory;
 import org.apache.parquet.io.api.Binary;
+import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.MessageType;
-import org.apache.parquet.schema.OriginalType;
 import org.apache.parquet.schema.Type;
 import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
@@ -49,7 +48,7 @@ public class ParquetResolver extends BasePlugin implements Resolver {
 
     private MessageType schema;
     private SimpleGroupFactory groupFactory;
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     // used to distinguish string pattern between type "timestamp" ("2019-03-14 14:10:28")
     // and type "timestamp with time zone" ("2019-03-14 14:10:28+07:30")
@@ -113,13 +112,14 @@ public class ParquetResolver extends BasePlugin implements Resolver {
             return;
         switch (type.asPrimitiveType().getPrimitiveTypeName()) {
             case BINARY:
-                if (type.getOriginalType() == OriginalType.UTF8)
+                if (type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.StringLogicalTypeAnnotation)
                     group.add(index, (String) field.val);
                 else
                     group.add(index, Binary.fromReusedByteArray((byte[]) field.val));
                 break;
             case INT32:
-                if (type.getOriginalType() == OriginalType.INT_16)
+                if (type.getLogicalTypeAnnotation() instanceof LogicalTypeAnnotation.IntLogicalTypeAnnotation &&
+                        ((LogicalTypeAnnotation.IntLogicalTypeAnnotation) type.getLogicalTypeAnnotation()).getBitWidth() == 16)
                     group.add(index, (Short) field.val);
                 else
                     group.add(index, (Integer) field.val);
@@ -136,8 +136,10 @@ public class ParquetResolver extends BasePlugin implements Resolver {
             case FIXED_LEN_BYTE_ARRAY:
                 // From org.apache.hadoop.hive.ql.io.parquet.write.DataWritableWriter.DecimalDataWriter#decimalToBinary
                 String value = (String) field.val;
-                int precision = Math.min(HiveDecimal.MAX_PRECISION, type.asPrimitiveType().getDecimalMetadata().getPrecision());
-                int scale = Math.min(HiveDecimal.MAX_SCALE, type.asPrimitiveType().getDecimalMetadata().getScale());
+                LogicalTypeAnnotation.DecimalLogicalTypeAnnotation decimalLogicalTypeAnnotation =
+                        (LogicalTypeAnnotation.DecimalLogicalTypeAnnotation) type.getLogicalTypeAnnotation();
+                int precision = Math.min(HiveDecimal.MAX_PRECISION, decimalLogicalTypeAnnotation.getPrecision());
+                int scale = Math.min(HiveDecimal.MAX_SCALE, decimalLogicalTypeAnnotation.getScale());
                 HiveDecimal hiveDecimal = HiveDecimal.enforcePrecisionScale(
                         HiveDecimal.create(value),
                         precision,
