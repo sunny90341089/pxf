@@ -130,7 +130,7 @@ EOF
 }
 
 function initial_data_load() {
-    psql -c "CREATE EXTERNAL TABLE lineitem_external (like lineitem) LOCATION ('pxf://tmp/lineitem_read/?PROFILE=HdfsTextSimple') FORMAT 'CSV' (DELIMITER '|')"
+    psql -c "CREATE EXTERNAL TABLE lineitem_external (like lineitem) LOCATION ('pxf://tmp/lineitem_read/?PROFILE=hdfs:text') FORMAT 'CSV' (DELIMITER '|')"
     echo -ne "\nInitial data load from external into GPDB..."
     LINEITEM_COUNT=$(time psql -c "INSERT INTO lineitem SELECT * FROM lineitem_external" | awk '{print $3}')
 #    echo -ne "\nValidating initial data load..."
@@ -237,12 +237,18 @@ function create_gphdfs_tables() {
     writable_external_table_text_query "${name}" "gphdfs://${HADOOP_HOSTNAME}:8020/tmp/lineitem_gphdfs_write/"
 }
 
+function create_gphdfs_parquet_tables() {
+    local name=${1}
+    psql -c "CREATE READABLE EXTERNAL TABLE lineitem_${name}_read_parquet  (LIKE lineitem) LOCATION('gphdfs://${HADOOP_HOSTNAME}:8020/tmp/lineitem_gphdfs_write_parquet/') FORMAT 'PARQUET'"
+    psql -c "CREATE WRITABLE EXTERNAL TABLE lineitem_${name}_write_parquet (LIKE lineitem) LOCATION('gphdfs://${HADOOP_HOSTNAME}:8020/tmp/lineitem_gphdfs_write_parquet/') FORMAT 'PARQUET' DISTRIBUTED BY (l_partkey)"
+}
+
 function create_hadoop_text_tables() {
     local name=${1}
     local run_id=${2}
     # create text tables
-    readable_external_table_text_query "${name}" "pxf://tmp/lineitem_read/?PROFILE=HdfsTextSimple"
-    writable_external_table_text_query "${name}" "pxf://tmp/lineitem_hadoop_write/${run_id}/?PROFILE=HdfsTextSimple"
+    readable_external_table_text_query "${name}" "pxf://tmp/lineitem_read/?PROFILE=hdfs:text"
+    writable_external_table_text_query "${name}" "pxf://tmp/lineitem_hadoop_write/${run_id}/?PROFILE=hdfs:text"
 }
 
 function create_hadoop_parquet_tables() {
@@ -471,6 +477,7 @@ function main() {
 
     if [[ ${BENCHMARK_GPHDFS} == true ]]; then
         run_text_benchmark create_gphdfs_tables "gphdfs" "GPHDFS"
+        # run_parquet_benchmark create_gphdfs_parquet_tables "gphdfs" "GPHDFS"
         echo -ne "\n>>> Validating GPHDFS data <<<\n"
         validate_write_to_external "gphdfs" "gphdfs://${HADOOP_HOSTNAME}:8020/tmp/lineitem_gphdfs_write/"
     fi
@@ -500,7 +507,7 @@ function main() {
             run_text_benchmark create_hadoop_text_tables "hadoop" "HADOOP" "0"
             run_parquet_benchmark create_hadoop_parquet_tables "hadoop" "HADOOP" "0"
             echo -ne "\n>>> Validating HADOOP data <<<\n"
-            validate_write_to_external "hadoop" "pxf://tmp/lineitem_hadoop_write/0/?PROFILE=HdfsTextSimple"
+            validate_write_to_external "hadoop" "pxf://tmp/lineitem_hadoop_write/0/?PROFILE=hdfs:text"
         else
             run_concurrent_benchmark run_text_benchmark create_hadoop_text_tables "hadoop" "HADOOP" ${concurrency}
             run_concurrent_benchmark run_parquet_benchmark create_hadoop_parquet_tables "hadoop" "HADOOP" "${concurrency}"
