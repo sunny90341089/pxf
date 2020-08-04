@@ -57,8 +57,8 @@ import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.Accessor;
 import org.greenplum.pxf.api.model.BasePlugin;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
-import org.greenplum.pxf.plugins.hdfs.parquet.ParquetRecordFilterBuilder;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetOperatorPrunerAndTransformer;
+import org.greenplum.pxf.plugins.hdfs.parquet.ParquetRecordFilterBuilder;
 import org.greenplum.pxf.plugins.hdfs.utilities.HdfsUtilities;
 
 import java.io.IOException;
@@ -81,7 +81,6 @@ import static org.apache.parquet.hadoop.api.ReadSupport.PARQUET_READ_SCHEMA;
 public class ParquetFileAccessor extends BasePlugin implements Accessor {
 
     private static final int DEFAULT_PAGE_SIZE = 1024 * 1024;
-    private static final int DEFAULT_FILE_SIZE = 128 * 1024 * 1024;
     private static final int DEFAULT_ROWGROUP_SIZE = 8 * 1024 * 1024;
     private static final int DEFAULT_DICTIONARY_PAGE_SIZE = 512 * 1024;
     private static final WriterVersion DEFAULT_PARQUET_VERSION = WriterVersion.PARQUET_1_0;
@@ -123,7 +122,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     private FileSystem fs;
     private Path file;
     private String filePrefix;
-    private int fileIndex, pageSize, rowGroupSize, dictionarySize;
+    private int pageSize, rowGroupSize, dictionarySize;
     private long rowsRead, rowsWritten, totalRowsRead, totalRowsWritten;
     private WriterVersion parquetVersion;
     private CodecFactory codecFactory = CodecFactory.getInstance();
@@ -261,18 +260,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
      */
     @Override
     public boolean writeNextObject(OneRow onerow) throws IOException {
-
         parquetWriter.write((Group) onerow.getData());
         rowsWritten++;
-        // Check for the output file size every 1000 rows
-        if (rowsWritten % 1000 == 0 && parquetWriter.getDataSize() > DEFAULT_FILE_SIZE) {
-            parquetWriter.close();
-            totalRowsWritten += rowsWritten;
-            // Reset rows written
-            rowsWritten = 0;
-            fileIndex++;
-            createParquetWriter();
-        }
         return true;
     }
 
@@ -415,8 +404,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
 
     private void createParquetWriter() throws IOException {
 
-        String fileName = filePrefix + "." + fileIndex;
-        fileName += codecName.getExtension() + ".parquet";
+        String fileName = filePrefix + codecName.getExtension() + ".parquet";
         LOG.debug("{}-{}: Creating file {}", context.getTransactionId(),
                 context.getSegmentId(), fileName);
         file = new Path(fileName);
@@ -426,7 +414,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         //noinspection deprecation
         parquetWriter = new ParquetWriter<>(file, groupWriteSupport, codecName,
                 rowGroupSize, pageSize, dictionarySize,
-                true, false, parquetVersion, configuration);
+                false, false, parquetVersion, configuration);
     }
 
     /**
