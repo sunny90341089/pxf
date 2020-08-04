@@ -27,6 +27,7 @@ import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.mapred.FileSplit;
 import org.apache.parquet.HadoopReadOptions;
 import org.apache.parquet.ParquetReadOptions;
+import org.apache.parquet.column.ParquetProperties;
 import org.apache.parquet.column.ParquetProperties.WriterVersion;
 import org.apache.parquet.example.data.Group;
 import org.apache.parquet.filter2.compat.FilterCompat;
@@ -122,6 +123,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     private FileSystem fs;
     private Path file;
     private String filePrefix;
+    private boolean enableDictionary;
     private int pageSize, rowGroupSize, dictionarySize;
     private long rowsRead, rowsWritten, totalRowsRead, totalRowsWritten;
     private WriterVersion parquetVersion;
@@ -229,6 +231,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         // Options for parquet write
         pageSize = context.getOption("PAGE_SIZE", DEFAULT_PAGE_SIZE);
         rowGroupSize = context.getOption("ROWGROUP_SIZE", DEFAULT_ROWGROUP_SIZE);
+        enableDictionary = StringUtils.equalsIgnoreCase("true",
+                context.getOption("ENABLE_DICTIONARY", String.valueOf(ParquetProperties.DEFAULT_IS_DICTIONARY_ENABLED)));
         dictionarySize = context.getOption("DICTIONARY_PAGE_SIZE", DEFAULT_DICTIONARY_PAGE_SIZE);
         String parquetVerStr = context.getOption("PARQUET_VERSION");
         parquetVersion = parquetVerStr != null ? WriterVersion.fromString(parquetVerStr.toLowerCase()) : DEFAULT_PARQUET_VERSION;
@@ -414,7 +418,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         //noinspection deprecation
         parquetWriter = new ParquetWriter<>(file, groupWriteSupport, codecName,
                 rowGroupSize, pageSize, dictionarySize,
-                false, false, parquetVersion, configuration);
+                enableDictionary, false, parquetVersion, configuration);
     }
 
     /**
