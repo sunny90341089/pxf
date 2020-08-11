@@ -32,6 +32,7 @@ import org.greenplum.pxf.api.OneField;
 import org.greenplum.pxf.api.OneRow;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.BasePlugin;
+import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.model.Resolver;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.api.utilities.Utilities;
@@ -53,6 +54,14 @@ public class ParquetResolver extends BasePlugin implements Resolver {
     // used to distinguish string pattern between type "timestamp" ("2019-03-14 14:10:28")
     // and type "timestamp with time zone" ("2019-03-14 14:10:28+07:30")
     public static final Pattern TIMESTAMP_PATTERN = Pattern.compile("[+-]\\d{2}(:\\d{2})?$");
+
+    public ParquetResolver() {
+        super();
+    }
+
+    ParquetResolver(ConfigurationFactory configurationFactory) {
+        this.configurationFactory = configurationFactory;
+    }
 
     @Override
     public List<OneField> getFields(OneRow row) {

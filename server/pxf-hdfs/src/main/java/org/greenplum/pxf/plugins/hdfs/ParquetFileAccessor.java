@@ -59,6 +59,7 @@ import org.greenplum.pxf.api.filter.TreeVisitor;
 import org.greenplum.pxf.api.io.DataType;
 import org.greenplum.pxf.api.model.Accessor;
 import org.greenplum.pxf.api.model.BasePlugin;
+import org.greenplum.pxf.api.model.ConfigurationFactory;
 import org.greenplum.pxf.api.utilities.ColumnDescriptor;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetOperatorPrunerAndTransformer;
 import org.greenplum.pxf.plugins.hdfs.parquet.ParquetRecordFilterBuilder;
@@ -130,11 +131,19 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
     private String filePrefix;
     private boolean enableDictionary;
     private int pageSize, rowGroupSize, dictionarySize;
-    private long rowsRead, rowsWritten, totalRowsRead, totalRowsWritten;
+    private long rowsRead, totalRowsRead, totalRowsWritten;
     private WriterVersion parquetVersion;
     private final CodecFactory codecFactory = CodecFactory.getInstance();
 
     private long totalReadTimeInNanos;
+
+    public ParquetFileAccessor() {
+        super();
+    }
+
+    ParquetFileAccessor(ConfigurationFactory configurationFactory) {
+        this.configurationFactory = configurationFactory;
+    }
 
     /**
      * Opens the resource for read.
@@ -269,9 +278,8 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
      */
     @Override
     public boolean writeNextObject(OneRow onerow) throws IOException, InterruptedException {
-
         recordWriter.write(null, (Group) onerow.getData());
-        rowsWritten++;
+        totalRowsWritten++;
         return true;
     }
 
@@ -285,7 +293,6 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
 
         if (recordWriter != null) {
             recordWriter.close(null);
-            totalRowsWritten += rowsWritten;
         }
         LOG.debug("{}-{}: writer closed, wrote a TOTAL of {} rows to {} on server {}",
                 context.getTransactionId(),
@@ -424,7 +431,7 @@ public class ParquetFileAccessor extends BasePlugin implements Accessor {
         configuration.setInt(DICTIONARY_PAGE_SIZE, dictionarySize);
         configuration.setBoolean(ENABLE_DICTIONARY, enableDictionary);
         configuration.set(WRITER_VERSION, parquetVersion.toString());
-        configuration.getLong(BLOCK_SIZE, rowGroupSize);
+        configuration.setLong(BLOCK_SIZE, rowGroupSize);
 
         recordWriter = new ParquetOutputFormat<>(groupWriteSupport)
                 .getRecordWriter(configuration, file, codecName, ParquetFileWriter.Mode.CREATE);
