@@ -5,6 +5,7 @@ set -e
 echo "Generating Releng Email"
 
 version=$(< pxf_open_source_license_file/version)
+osl_file_url=$(< pxf_open_source_license_file/url)
 
 cat > pxf_artifacts/email_subject.txt << EOF
 PXF Release ${version} is ready to be published to VMware Tanzu Network
@@ -18,7 +19,7 @@ The new PXF release ${version} is ready to be published to VMware Tanzu Network.
 We have uploaded the following artifacts to the appropriate RelEng release buckets:
 $(ls pxf_artifacts/pxf-*.*)
 
-The OSL file has been generated and is attached to this email.
+The attached OSL file can also be found at: ${osl_file_url}
 
 Can you please upload the artifacts and the OSL file to the Greenplum Tanzu Network Release for our product, PXF?
 The OSL file should appear as "Open Source Licenses for PXF ${version}".

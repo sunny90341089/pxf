@@ -8,13 +8,14 @@ inputs:
   - name: pxf_open_source_license_file
   - name: pxf_artifacts
 
+outputs:
+  - name: pxf_artifacts
+
 params:
-  GCS_OSL_PATH:
-  GCS_RELEASES_BUCKET:
-  GCS_RELEASES_PATH:
-  GOOGLE_CREDENTIALS:
-  RELENG_RELEASES_BUCKET:
-  RELENG_RELEASES_PATH:
+  ATC_EXTERNAL_URL:
+  BUILD_PIPELINE_NAME:
+  BUILD_JOB_NAME:
+  BUILD_NAME:
 
 run:
   path: pxf_src/concourse/scripts/generate_releng_email.bash
