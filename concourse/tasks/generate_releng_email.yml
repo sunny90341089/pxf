@@ -1,0 +1,20 @@
+platform: linux
+
+image_resource:
+  type: registry-image
+
+inputs:
+  - name: pxf_src
+  - name: pxf_open_source_license_file
+  - name: pxf_artifacts
+
+params:
+  GCS_OSL_PATH:
+  GCS_RELEASES_BUCKET:
+  GCS_RELEASES_PATH:
+  GOOGLE_CREDENTIALS:
+  RELENG_RELEASES_BUCKET:
+  RELENG_RELEASES_PATH:
+
+run:
+  path: pxf_src/concourse/scripts/generate_releng_email.bash
