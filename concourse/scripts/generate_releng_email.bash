@@ -17,7 +17,7 @@ Hi GPDB Releng Team,
 The new PXF release ${version} is ready to be published to VMware Tanzu Network.
 
 We have uploaded the following artifacts to the appropriate RelEng release buckets:
-$(ls pxf_artifacts/pxf-*.*)
+$(cd pxf_artifacts && ls pxf-*.*)
 
 The attached OSL file can also be found at: ${osl_file_url}
 
