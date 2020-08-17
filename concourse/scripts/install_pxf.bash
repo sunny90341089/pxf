@@ -133,6 +133,10 @@ function create_pxf_installer_scripts() {
 		  echo 'export JAVA_HOME=/usr/lib/jvm/jre' | sudo tee -a ~centos/.bashrc
 		}
 
+		function install_snappy() {
+		  yum install -y -q -e 0 snappy
+		}
+
 		function install_hadoop_client() {
 		  cat > /etc/yum.repos.d/hdp.repo <<EOF
 		[HDP-2.6.5.0]
@@ -151,6 +155,8 @@ function create_pxf_installer_scripts() {
 
 		function main() {
 		  install_java
+		  # required for native snappy compression support
+		  install_snappy
 		  if [[ $INSTALL_GPHDFS == true ]]; then
 		    install_hadoop_client
 		  fi

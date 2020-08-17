@@ -31,8 +31,12 @@ function inflate_dependencies() {
 		files_to_link+=(~gpadmin/.{tomcat,go-dep-cached-sources,gradle})
 	fi
 	if [[ -f pxf-automation-dependencies/pxf-automation-dependencies.tar.gz ]]; then
-		tarballs+=pxf-automation-dependencies/pxf-automation-dependencies.tar.gz
+		tarballs+=(pxf-automation-dependencies/pxf-automation-dependencies.tar.gz)
 		files_to_link+=(~gpadmin/.m2)
+	fi
+	local hadoop_tarball=$(find hadoop-native-libraries -name 'hadoop-gp*.el*.tar.gz')
+	if [[ -f ${hadoop_tarball} ]]; then
+		tarballs+=("${hadoop_tarball}")
 	fi
 	(( ${#tarballs[@]} == 0 )) && return
 	for t in "${tarballs[@]}"; do
@@ -40,6 +44,11 @@ function inflate_dependencies() {
 	done
 	ln -s "${files_to_link[@]}" ~root
 	chown -R gpadmin:gpadmin ~gpadmin
+
+	if [[ -f ${hadoop_tarball} ]]; then
+		local hadoop_native_lib_path=$(find ~gpadmin/hadoop-*/ -name native)
+		export HADOOP_NATIVE_LIBRARY_PATH=${hadoop_native_lib_path}
+	fi
 }
 
 function inflate_singlecluster() {

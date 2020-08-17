@@ -39,6 +39,18 @@ steps:
   waitFor:
     - gpdb5-centos6-test-pxf-image-cache
 
+- name: 'gcr.io/cloud-builders/docker'
+  id: gpdb5-centos6-build-native-image
+  args:
+  - 'build'
+  - '--build-arg=BASE_IMAGE=gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb5-centos6-test-pxf:$COMMIT_SHA'
+  - '--tag=gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb5-centos6-build-native:$COMMIT_SHA'
+  - '-f'
+  - 'concourse/docker/pxf-native-base/gpdb5/centos6/Dockerfile'
+  - '/workspace/build/'
+  waitFor:
+    - gpdb5-centos6-test-pxf-image
+
 # An image for gpdb5 running on CentOS7
 - name: 'gcr.io/cloud-builders/docker'
   id: gpdb5-centos7-test-pxf-image-cache
@@ -63,6 +75,18 @@ steps:
   - '/workspace/build/'
   waitFor:
     - gpdb5-centos7-test-pxf-image-cache
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: gpdb5-centos7-build-native-image
+  args:
+  - 'build'
+  - '--build-arg=BASE_IMAGE=gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb5-centos7-test-pxf:$COMMIT_SHA'
+  - '--tag=gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb5-centos7-build-native:$COMMIT_SHA'
+  - '-f'
+  - 'concourse/docker/pxf-native-base/gpdb5/centos7/Dockerfile'
+  - '/workspace/build/'
+  waitFor:
+    - gpdb5-centos7-test-pxf-image
 
 ##############################################################################
 # GPDB 6 Images
@@ -92,6 +116,18 @@ steps:
   - '/workspace/build/'
   waitFor:
     - gpdb6-centos7-test-pxf-image-cache
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: gpdb6-centos7-build-native-image
+  args:
+  - 'build'
+  - '--build-arg=BASE_IMAGE=gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb6-centos7-test-pxf:$COMMIT_SHA'
+  - '--tag=gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb6-centos7-build-native:$COMMIT_SHA'
+  - '-f'
+  - 'concourse/docker/pxf-native-base/gpdb6/centos7/Dockerfile'
+  - '/workspace/build/'
+  waitFor:
+    - gpdb6-centos7-test-pxf-image
 
 # Corresponds to the docker-gpdb-pxf-dev-ubuntu18 job in the docker pipeline
 - name: 'gcr.io/cloud-builders/docker'
@@ -143,10 +179,13 @@ steps:
   waitFor:
     - gpdb6-oel7-test-pxf-image-cache
 
-# Push images to Cloud Build to Container Registry
+# Push images from Cloud Build to Container Registry
 images:
 - 'gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb5-centos6-test-pxf:$COMMIT_SHA'
 - 'gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb5-centos7-test-pxf:$COMMIT_SHA'
 - 'gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb6-centos7-test-pxf:$COMMIT_SHA'
 - 'gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb6-ubuntu18.04-test-pxf:$COMMIT_SHA'
 - 'gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb6-oel7-test-pxf:$COMMIT_SHA'
+- 'gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb5-centos6-build-native:$COMMIT_SHA'
+- 'gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb5-centos7-build-native:$COMMIT_SHA'
+- 'gcr.io/$PROJECT_ID/gpdb-pxf-dev/gpdb6-centos7-build-native:$COMMIT_SHA'

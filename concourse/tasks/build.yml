@@ -9,6 +9,8 @@ inputs:
   optional: true
 - name: pxf_src
 - name: gpdb_package
+- name: hadoop-native-libraries
+  optional: true
 
 outputs:
 - name: dist

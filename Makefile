@@ -53,7 +53,12 @@ stage:
 	cp -a cli/build/stage/* build/stage/$${PXF_PACKAGE_NAME} ;\
 	cp -a server/build/stage/* build/stage/$${PXF_PACKAGE_NAME} ;\
 	echo $$(git rev-parse --verify HEAD) > build/stage/$${PXF_PACKAGE_NAME}/pxf/commit.sha ;\
-	cp package/install_binary build/stage/$${PXF_PACKAGE_NAME}/install_component
+	cp package/install_binary build/stage/$${PXF_PACKAGE_NAME}/install_component ;\
+	if [ -n "$(HADOOP_NATIVE_LIBRARY_PATH)" ] && [ -d "$(HADOOP_NATIVE_LIBRARY_PATH)" ]; then \
+		mkdir -p build/stage/$${PXF_PACKAGE_NAME}/pxf/lib/shared/native && \
+		rm -rf $(HADOOP_NATIVE_LIBRARY_PATH)/examples && \
+		cp $(HADOOP_NATIVE_LIBRARY_PATH)/* build/stage/$${PXF_PACKAGE_NAME}/pxf/lib/shared/native/; \
+	fi
 
 tar: stage
 	rm -rf build/dist
@@ -76,6 +81,11 @@ rpm:
 	cp -a server/build/stage/pxf/* build/rpmbuild/SOURCES ;\
 	echo $$(git rev-parse --verify HEAD) > build/rpmbuild/SOURCES/commit.sha ;\
 	cp package/*.spec build/rpmbuild/SPECS/ ;\
+	if [ -n "$(HADOOP_NATIVE_LIBRARY_PATH)" ] && [ -d "$(HADOOP_NATIVE_LIBRARY_PATH)" ]; then \
+		mkdir -p build/rpmbuild/SOURCES/lib/shared/native && \
+		rm -rf $(HADOOP_NATIVE_LIBRARY_PATH)/examples && \
+		cp $(HADOOP_NATIVE_LIBRARY_PATH)/* build/rpmbuild/SOURCES/lib/shared/native/; \
+	fi; \
 	rpmbuild \
 	--define "_topdir $${PWD}/build/rpmbuild" \
 	--define "pxf_version $${PXF_MAIN_VERSION}" \

@@ -168,6 +168,14 @@ resources:
     json_key: ((pxf-storage-service-account-key))
     versioned_file: build-dependencies/pxf-build-dependencies.tar.gz
 
+- name: hadoop_gp6_tarball_rhel7
+  type: gcs
+  icon: google-drive
+  source:
+    bucket: data-gpdb-ud-pxf-build-resources
+    json_key: ((pxf-storage-service-account-key))
+    versioned_file: hadoop-native/hadoop-gp6.el7.tar.gz
+
 - name: timed-trigger
   type: time
   icon: timer
@@ -189,6 +197,8 @@ jobs:
     - get: gpdb_package
       resource: gpdb6_rhel7
     - get: pxf-build-dependencies
+    - get: hadoop-native-libraries
+      resource: hadoop_gp6_tarball_rhel7
   - task: Build PXF-GP6 on RHEL7
     image: gpdb6-pxf-dev-centos7-image
     file: pxf_src/concourse/tasks/build.yml

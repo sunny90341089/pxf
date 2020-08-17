@@ -37,6 +37,7 @@ resources:
       uri: https://github.com/greenplum-db/pxf.git
       paths:
         - concourse/docker/pxf-dev-base
+        - concourse/docker/pxf-native-base
 
   - name: dockerfile-gpdb-pxf-mapr
     type: git
@@ -103,7 +104,7 @@ jobs:
         GOOGLE_CREDENTIALS: {{google-service-account-key}}
         GOOGLE_PROJECT_ID: {{google-project-id}}
         GOOGLE_ZONE: {{google-zone}}
-        IMAGE_LIST: "gpdb5-centos6-test-pxf gpdb5-centos7-test-pxf gpdb6-centos7-test-pxf gpdb6-ubuntu18.04-test-pxf gpdb6-oel7-test-pxf"
+        IMAGE_LIST: "gpdb5-centos6-test-pxf gpdb5-centos7-test-pxf gpdb6-centos7-test-pxf gpdb6-ubuntu18.04-test-pxf gpdb6-oel7-test-pxf gpdb5-centos6-build-native gpdb5-centos7-build-native gpdb6-centos7-build-native"
       config:
         platform: linux
         inputs:

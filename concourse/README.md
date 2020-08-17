@@ -9,7 +9,7 @@ engine for Python. This allows the generation of portions of the
 pipeline from common blocks of pipeline code. Logic (Python code) can
 be embedded to further manipulate the generated pipeline.
 
-# Deploy the `pxf-build` (release) pipeline
+## Deploy the `pxf-build` (release) pipeline
 
 To deploy the build pipeline for PXF, make sure PXF master branch is currently checked-out and run this command:
 
@@ -17,15 +17,24 @@ To deploy the build pipeline for PXF, make sure PXF master branch is currently c
 make -C "${HOME}/workspace/pxf/concourse" build
 ```
 
-# Deploy the `pxf-certification` (release) pipeline
+## Deploy the `pxf-certification` (release) pipeline
 
-To deploy the certifcation pipeline (forward compatibility) for PXF, make sure PXF master branch is currently checked-out and run this command:
+To deploy the certification pipeline (forward compatibility) for PXF, make sure PXF master branch is currently checked-out and run this command:
 
 ```shell script
 make -C "${HOME}/workspace/pxf/concourse" certification
 ```
 
-# Deploy the singlecluster pipeline
+## Deploy the `pxf-native` pipeline
+
+The `pxf-native` pipeline builds native components to be shipped with PXF, for
+example, it builds the Hadoop Native Libraries to be embedded in the RPM.
+
+```shell script
+make pxf-native
+```
+
+## Deploy the singlecluster pipeline
 
 The singlecluster pipeline generates the singlecluster tarball for CDH, HDP2,
 and HDP3. The generated tarballs are then published to an S3 and GCS bucket.
@@ -35,7 +44,7 @@ The produced tarballs can then be consumed in the pxf-build pipelines.
 make singlecluster
 ```
 
-# Deploy the cloudbuild pipeline
+## Deploy the cloudbuild pipeline
 
 ```shell
 fly -t ud set-pipeline \
@@ -46,13 +55,13 @@ fly -t ud set-pipeline \
     -v pxf-git-branch=master -p cloudbuild
 ```
 
-# Deploy the pull-request pipeline
+## Deploy the pull-request pipeline
 
 ```shell
 make -C "${HOME}/workspace/pxf/concourse" pr
 ```
 
-# Deploy the performance pipelines
+## Deploy the performance pipelines
 
 10G Performance pipeline:
 
@@ -76,7 +85,7 @@ make SCALE=50 perf
 make SCALE=500 perf
 ```
 
-# Deploy a PXF acceptance pipeline
+## Deploy a PXF acceptance pipeline
 Acceptance pipelines can be deployed for feature testing purposes.
 ```shell
 ./deploy dev master -a -n acceptance
@@ -90,7 +99,7 @@ After acceptance, the pipeline can be cleaned up as follows:
 fly -t ud dp -p acceptance
 ```
 
-# Deploy development PXF pipelines
+## Deploy development PXF pipelines
 
 The dev pipeline is an abbreviated version of the `pxf-build` pipeline.
 
@@ -102,7 +111,7 @@ make -C "${HOME}/workspace/pxf/concourse" dev
 
 This command will automatically point the pipeline at your currently checked-out branch of PXF.
 
-# Deploy Longevity Testing PXF pipeline
+## Deploy Longevity Testing PXF pipeline
 The longevity testing pipeline is designed to work off a PXF tag that needs to be provided as a parameter when
 creating the pipeline. The generated pipeline compiles PXF, creates a Greenplum CCP cluster and 2 secure dataproc clusters
 and runs a multi-cluster security test every 15 minutes. CCP cluster is set with expiration time of more than 6 months, so
@@ -123,7 +132,7 @@ fly -t ud set-pipeline \
     -v pxf-tag=<YOUR-TAG> -p dev:longevity_<YOUR-TAG>_6X_STABLE
 ```
 
-# Deploy `pg_regress` pipeline
+## Deploy `pg_regress` pipeline
 
 This pipeline currently runs the smoke test group against the different clouds using `pg_regress` instead of automation.
 It uses both external and foreign tables.
@@ -147,7 +156,7 @@ Expose the `pg_regress` pipeline:
 fly -t ud expose-pipeline -p pg_regress
 ```
 
-# Deploy the PXF CLI pipeline
+## Deploy the PXF CLI pipeline
 
 ```shell
 fly -t ud set-pipeline \

@@ -1,0 +1,20 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+
+inputs:
+  - name: hadoop_src
+  - name: pxf_src
+  - name: hadoop-build-dependencies
+    optional: true
+
+outputs:
+  - name: dist
+
+params:
+  TARGET_OS:
+
+run:
+  path: pxf_src/concourse/scripts/build-hadoop-native.bash

@@ -198,6 +198,15 @@ singlecluster:
 		-l ~/workspace/gp-continuous-integration/secrets/gpdb_common-ci-secrets.yml \
 		-v pxf-git-branch=master -p pxf-singlecluster
 
+
+.PHONY: pxf-native
+pxf-native:
+	fly -t ud set-pipeline \
+		-c ~/workspace/pxf/concourse/pipelines/pxf-native_pipeline.yml \
+		-l ~/workspace/gp-continuous-integration/secrets/gpdb_common-ci-secrets.yml \
+		--load-vars-from=$(SECRETS_FILE) \
+		-v pxf-git-branch=${BRANCH} -p pxf-native
+
 ## ----------------------------------------------------------------------
 ## List explicit rules
 ## ----------------------------------------------------------------------

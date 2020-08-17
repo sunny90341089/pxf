@@ -29,9 +29,6 @@ export PXF_CONF=${PXF_CONF:-NOT_INITIALIZED}
 # Default PXF_HOME
 export PXF_HOME=${PXF_HOME:=${PARENT_SCRIPT_DIR}}
 
-# Path to HDFS native libraries
-export LD_LIBRARY_PATH=/usr/lib/hadoop/lib/native:${LD_LIBRARY_PATH}
-
 # Path to JAVA
 export JAVA_HOME=${JAVA_HOME:=/usr/java/default}
 
@@ -49,6 +46,13 @@ export PXF_SHUTDOWN_PORT=${PXF_SHUTDOWN_PORT:=5889}
 
 # Memory
 export PXF_JVM_OPTS=${PXF_JVM_OPTS:='-Xmx2g -Xms1g'}
+
+# Path to native libraries
+if [[ -d ${PXF_HOME}/lib/shared/native ]]; then
+  export LD_LIBRARY_PATH=${PXF_HOME}/lib/shared/native:${LD_LIBRARY_PATH}
+
+  PXF_JVM_OPTS="-Djava.library.path=${PXF_HOME}/lib/shared/native ${PXF_JVM_OPTS}"
+fi
 
 # Threads
 export PXF_MAX_THREADS=${PXF_MAX_THREADS:=200}

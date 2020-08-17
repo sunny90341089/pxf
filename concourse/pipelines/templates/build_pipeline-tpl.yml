@@ -419,6 +419,14 @@ resources:
     bucket: data-gpdb-ud-pxf-build
     json_key: ((pxf-storage-service-account-key))
     versioned_file: prod/snapshots/pxf-gp[[gp_ver]].el6.tar.gz
+
+- name: hadoop_gp[[gp_ver]]_tarball_rhel6
+  type: gcs
+  icon: google-drive
+  source:
+    bucket: data-gpdb-ud-pxf-build-resources
+    json_key: ((pxf-storage-service-account-key))
+    versioned_file: hadoop-native/hadoop-gp[[gp_ver]].el6.tar.gz
 {% set gp_ver = None %}
 
 {% for gp_ver in range(5, 7) %}
@@ -429,6 +437,14 @@ resources:
     bucket: data-gpdb-ud-pxf-build
     json_key: ((pxf-storage-service-account-key))
     versioned_file: prod/snapshots/pxf-gp[[gp_ver]].el7.tar.gz
+
+- name: hadoop_gp[[gp_ver]]_tarball_rhel7
+  type: gcs
+  icon: google-drive
+  source:
+    bucket: data-gpdb-ud-pxf-build-resources
+    json_key: ((pxf-storage-service-account-key))
+    versioned_file: hadoop-native/hadoop-gp[[gp_ver]].el7.tar.gz
 {% endfor %}
 
 {% if build_deb %}
@@ -484,6 +500,8 @@ jobs:
       resource: gpdb[[gp_ver]]_rhel6_rpm_latest-0
     - get: gpdb[[gp_ver]]-pxf-dev-centos6-image
     - get: pxf-build-dependencies
+    - get:  hadoop-native-libraries
+      resource: hadoop_gp[[gp_ver]]_tarball_rhel6
   - task: Build PXF on RHEL6
     image: gpdb[[gp_ver]]-pxf-dev-centos6-image
     file: pxf_src/concourse/tasks/build.yml
@@ -535,6 +553,8 @@ jobs:
       resource: gpdb[[gp_ver]]_rhel7_rpm_latest-0
     - get: gpdb[[gp_ver]]-pxf-dev-centos7-image
     - get: pxf-build-dependencies
+    - get: hadoop-native-libraries
+      resource: hadoop_gp[[gp_ver]]_tarball_rhel7
   - task: Build PXF-GP[[gp_ver]] on RHEL7
     image: gpdb[[gp_ver]]-pxf-dev-centos7-image
     file: pxf_src/concourse/tasks/build.yml

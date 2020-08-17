@@ -1,0 +1,141 @@
+
+## ======================================================================
+## RESOURCE TYPES
+## ======================================================================
+resource_types:
+
+- name: gcs
+  type: registry-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+## ---------- Build Resources -------
+- name: hadoop-build-dependencies
+  type: gcs
+  icon: google-drive
+  source:
+    bucket: data-gpdb-ud-pxf-build-resources
+    json_key: ((pxf-storage-service-account-key))
+    versioned_file: build-dependencies/hadoop-native-build-dependencies.tar.gz
+
+## ---------- Github Repos ----------
+- name: pxf_src
+  type: git
+  icon: git
+  source:
+    branch: ((pxf-git-branch))
+    uri: ((pxf-git-remote))
+
+- name: hadoop_src
+  type: git
+  icon: git
+  source:
+    uri: https://github.com/apache/hadoop.git
+    tag_filter: rel/release-2.9.2
+
+## ---------- Docker Images ----------
+- name: gpdb5-pxf-dev-centos6-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: gcr.io/data-gpdb-ud/gpdb-pxf-dev/gpdb5-centos6-build-native
+    tag: latest
+    username: _json_key
+    password: ((pxf-cloudbuild-service-account-key))
+
+- name: gpdb5-pxf-dev-centos7-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: gcr.io/data-gpdb-ud/gpdb-pxf-dev/gpdb5-centos7-build-native
+    tag: latest
+    username: _json_key
+    password: ((pxf-cloudbuild-service-account-key))
+
+- name: gpdb6-pxf-dev-centos7-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: gcr.io/data-gpdb-ud/gpdb-pxf-dev/gpdb6-centos7-build-native
+    tag: latest
+    username: _json_key
+    password: ((pxf-cloudbuild-service-account-key))
+
+## ---------- Hadoop Native Build Artifacts ----------
+- name: hadoop_gp5_tarball_rhel6
+  type: gcs
+  icon: google-drive
+  source:
+    bucket: data-gpdb-ud-pxf-build-resources
+    json_key: ((pxf-storage-service-account-key))
+    versioned_file: hadoop-native/hadoop-gp5.el6.tar.gz
+
+- name: hadoop_gp5_tarball_rhel7
+  type: gcs
+  icon: google-drive
+  source:
+    bucket: data-gpdb-ud-pxf-build-resources
+    json_key: ((pxf-storage-service-account-key))
+    versioned_file: hadoop-native/hadoop-gp5.el7.tar.gz
+
+- name: hadoop_gp6_tarball_rhel7
+  type: gcs
+  icon: google-drive
+  source:
+    bucket: data-gpdb-ud-pxf-build-resources
+    json_key: ((pxf-storage-service-account-key))
+    versioned_file: hadoop-native/hadoop-gp6.el7.tar.gz
+
+## ---------- Centos 6 Swimlane ----------
+jobs:
+- name: Build Hadoop-GP5 on RHEL6
+  plan:
+    - in_parallel:
+      - get: pxf_src
+      - get: hadoop_src
+      - get: gpdb5-pxf-dev-centos6-image
+      - get: hadoop-build-dependencies
+    - task: Build Hadoop Native-GP5 on RHEL6
+      image: gpdb5-pxf-dev-centos6-image
+      file: pxf_src/concourse/tasks/build-hadoop-native.yml
+      params:
+        TARGET_OS: rhel6
+    - put: hadoop_gp5_tarball_rhel6
+      params:
+        file: dist/hadoop-2.9.2.tar.gz
+
+- name: Build Hadoop-GP5 on RHEL7
+  plan:
+    - in_parallel:
+      - get: pxf_src
+      - get: hadoop_src
+      - get: gpdb5-pxf-dev-centos7-image
+      - get: hadoop-build-dependencies
+    - task: Build Hadoop Native-GP5 on RHEL7
+      image: gpdb5-pxf-dev-centos7-image
+      file: pxf_src/concourse/tasks/build-hadoop-native.yml
+      params:
+        TARGET_OS: rhel7
+    - put: hadoop_gp5_tarball_rhel7
+      params:
+        file: dist/hadoop-2.9.2.tar.gz
+
+- name: Build Hadoop-GP6 on RHEL7
+  plan:
+    - in_parallel:
+      - get: pxf_src
+      - get: hadoop_src
+      - get: gpdb6-pxf-dev-centos7-image
+      - get: hadoop-build-dependencies
+    - task: Build Hadoop Native-GP6 on RHEL7
+      image: gpdb6-pxf-dev-centos7-image
+      file: pxf_src/concourse/tasks/build-hadoop-native.yml
+      params:
+        TARGET_OS: rhel7
+    - put: hadoop_gp6_tarball_rhel7
+      params:
+        file: dist/hadoop-2.9.2.tar.gz
+    - put: hadoop-build-dependencies
+      params:
+        file: dist/hadoop-native-build-dependencies.tar.gz
